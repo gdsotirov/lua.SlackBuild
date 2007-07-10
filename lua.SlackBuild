@@ -1,41 +1,112 @@
 #!/bin/sh
 #
-# SlackBuild for Lua
+# SlackBuild for lua
 # Written by Georgi D. Sotirov <gdsotirov@dir.bg>
+# Based on script of Yair K <cesium2@gmail.com>
 #
 
-. /etc/slack-package.conf
+. ../slack-package.conf
 
 NAME=lua
-VERSION=5.0.3
+VER_MAJOR=5
+VER_MINOR=1
+VERSION=$VER_MAJOR.$VER_MINOR.2
+ARCH=${ARCH:-i486}
 BUILD=1
+
+CWD=${CWD:-`pwd`}
+TMP=${TMP:-/tmp}
+
+LUA_PREFIX=usr
+LUA_LIB=lib
+LUA_LIBDIR=$LUA_PREFIX/$LUA_LIB/$NAME/$VER_MAJOR.$VER_MINOR
 
 cd $TMP
 tar -zxvf $CWD/$NAME-$VERSION.tar.gz
 SRC=$TMP/$NAME-$VERSION
 cd $SRC
-fix_source
 
-make -e MYCFLAGS="$SLKCFLAGS -fPIC" MYLDFLAGS=-fPIC
-make -e MYCFLAGS="$SLKCFLAGS -fPIC" MYLDFLAGS=-fPIC so
+# See http://lua-users.org/wiki/LuaPowerPatches
+zcat $CWD/$NAME.advanced-readline.diff.gz | patch -p1 -b -z.orig
+zcat $CWD/$NAME.make-shared-libs.diff.gz | patch -p0 -b -z.orig
 
 PKG="$TMP/package-$NAME"
 mkdir -p $PKG
 
-make INSTALL_ROOT=$PKG/usr install 
-make INSTALL_ROOT=$PKG/usr soinstall
+sed -e "s_/usr/local_$PKG/${LUA_PREFIX}_" \
+    -e "s_/lib_/${LUA_LIB}_" \
+    -e "/^INSTALL_D/ d" \
+    -e "/^INSTALL_E/ d" \
+    -e "s_#INSTALL_INSTALL_" \
+    -e "/EXEC/ s_-m_-s -m_" \
+    -e "/^INSTALL_INC/ s:$:/${NAME}/${VER_MAJOR}.${VER_MINOR}:" \
+    -i Makefile
+sed -e '/^CFLAGS/ s_$_ ${SLKCFLAGS}_' \
+    -e "/LUA_T/ {N;s_-llua_-Wl,-rpath,/$LUA_LIBDIR -llua_}" \
+    -i src/Makefile
+sed -e "s:\(.*LUA_ROOT\).*local.*:\1 \"/$LUA_PREFIX/\":" \
+    -e "/LUA_CDIR/ s:lib:$LUA_LIB:" \
+    -i.orig src/luaconf.h
 
-cd $PKG
-bin_perms $PKG
-strip_bin
+fix_source
+
+SLKCFLAGS=$SLKCFLAGS make linux
+LD_LIBRARY_PATH=src make test || exit 1
+make install
+
+install -m 755 -d $PKG/$LUA_LIBDIR
+mv $PKG/$LUA_PREFIX/$LUA_LIB/* $PKG/$LUA_LIBDIR
+( cd $PKG/$LUA_LIBDIR
+  ln -s liblua.so liblua.so.$VERSION
+  ln -s liblua.so liblua.so.$VER_MAJOR.$VER_MINOR )
+( cd $PKG/$LUA_LIBDIR
+  for file in *; do
+    ln -s /$LUA_LIBDIR/$file $PKG/$LUA_PREFIX/$LUA_LIB
+  done )
+
+( cd $PKG/$LUA_PREFIX/bin
+  mv lua lua$VER_MAJOR.$VER_MINOR
+  mv luac luac$VER_MAJOR.$VER_MINOR
+  ln -s lua$VER_MAJOR.$VER_MINOR lua
+  ln -s luac$VER_MAJOR.$VER_MINOR luac )
+
+PCDIR=$PKG/$LUA_PREFIX/$LUA_LIB/pkgconfig
+install -m 755 -d $PCDIR
+
+cat << END > $PCDIR/$NAME-$VER_MAJOR.$VER_MINOR.pc
+prefix=/$LUA_PREFIX
+exec_prefix=\${prefix}
+libdir=/$LUA_LIBDIR
+includedir=\${prefix}/include/$NAME/$VER_MAJOR.$VER_MINOR
+module_dir=share/$NAME/$VER_MAJOR.$VER_MINOR
+binary_modile_dir=$LUA_LIB/$NAME/$VER_MAJOR.$VER_MINOR
+
+Name: Lua
+Description: An Extensible Extension Language
+Version: $VERSION
+Requires:
+Libs: -L\${libdir} -Wl,-rpath,\${libdir} -llua
+Cflags: -I\${includedir}
+END
+
+( cd $PCDIR
+  ln -s $NAME-$VER_MAJOR.$VER_MINOR.pc $NAME.pc )
+
+# Prepare the package
+( cd $PKG; strip_bin; strip_lib )
+( cd $SRC; create_docs $PKG $NAME-$VERSION )
 gzip_man $PKG
-cd $SRC
-create_docs $PKG $NAME-$VERSION
 
 mkdir -p $PKG/install
-install -m 644 $CWD/slack-desc $PKG/install/slack-desc
+install -m 644 $CWD/slack-desc     $PKG/install
+install -m 644 $CWD/slack-required $PKG/install
 mkdir -p $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/slack-desc $PKG/usr/src/slackbuilds/$NAME-$VERSION
+install -m 644 $CWD/slack-desc       $PKG/usr/src/slackbuilds/$NAME-$VERSION
+install -m 644 $CWD/slack-required   $PKG/usr/src/slackbuilds/$NAME-$VERSION
+install -m 644 $CWD/$NAME.advanced-readline.diff.gz \
+               $PKG/usr/src/slackbuilds/$NAME-$VERSION
+install -m 644 $CWD/$NAME.make-shared-libs.diff.gz  \
+               $PKG/usr/src/slackbuilds/$NAME-$VERSION
 install -m 644 $CWD/$NAME.SlackBuild $PKG/usr/src/slackbuilds/$NAME-$VERSION
 
 cd $PKG
