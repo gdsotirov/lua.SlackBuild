@@ -1,6 +1,6 @@
---- Makefile	2006-06-02 13:53:38.000000000 +0300
-+++ Makefile	2006-10-05 21:34:47.818973000 +0200
-@@ -42,7 +42,7 @@
+--- Makefile	2008-08-12 03:40:48.000000000 +0300
++++ Makefile	2008-10-18 11:56:56.000000000 +0300
+@@ -43,7 +43,7 @@
  # What to install.
  TO_BIN= lua luac
  TO_INC= lua.h luaconf.h lualib.h lauxlib.h ../etc/lua.hpp
@@ -9,10 +9,10 @@
  TO_MAN= lua.1 luac.1
  
  # Lua version and release.
---- src/Makefile	2006-03-22 02:41:49.000000000 +0200
-+++ src/Makefile	2006-10-24 23:49:35.981196000 +0200
+--- src/Makefile	2008-01-19 21:37:58.000000000 +0200
++++ src/Makefile	2008-10-18 11:56:56.000000000 +0300
 @@ -23,6 +23,7 @@
- PLATS= aix ansi bsd generic linux macosx mingw posix solaris
+ PLATS= aix ansi bsd freebsd generic linux macosx mingw posix solaris
  
  LUA_A=	liblua.a
 +LUA_SO= liblua.so
