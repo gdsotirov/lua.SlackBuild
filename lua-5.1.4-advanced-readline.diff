@@ -1,7 +1,9 @@
---- lua-5.1/src/lua.c	2005-12-29 17:23:32 +0100
-+++ lua-5.1-advreadline/src/lua.c	2006-02-18 13:25:12 +0100
-@@ -147,6 +147,241 @@
-   return report(L, lua_pcall(L, 1, 0, 0));
+# See http://lua-users.org/wiki/LuaPowerPatches
+# URL: http://luajit.org/patches/lua-5.1.4-advanced_readline.patch
+--- src/lua.c	2007-12-28 17:32:23.000000000 +0200
++++ src/lua.c	2008-10-18 12:30:41.000000000 +0300
+@@ -149,6 +149,241 @@
+   return report(L, docall(L, 1, 1));
  }
  
 +/* ------------------------------------------------------------------------ */
@@ -242,7 +244,7 @@
  
  static const char *get_prompt (lua_State *L, int firstline) {
    const char *p;
-@@ -215,6 +450,7 @@
+@@ -217,6 +452,7 @@
    int status;
    const char *oldprogname = progname;
    progname = NULL;
@@ -250,7 +252,7 @@
    while ((status = loadline(L)) != -1) {
      if (status == 0) status = docall(L, 0, 0);
      report(L, status);
-@@ -230,6 +466,7 @@
+@@ -232,6 +468,7 @@
    lua_settop(L, 0);  /* clear stack */
    fputs("\n", stdout);
    fflush(stdout);
