@@ -10,7 +10,8 @@
 NAME=lua
 VER_MAJOR=5
 VER_MINOR=1
-VERSION=$VER_MAJOR.$VER_MINOR.2
+VER_PATCH=4
+VERSION=$VER_MAJOR.$VER_MINOR.$VER_PATCH
 ARCH=${ARCH:-i486}
 BUILD=1
 
@@ -19,56 +20,64 @@ TMP=${TMP:-/tmp}
 
 LUA_PREFIX=usr
 LUA_LIB=lib
-LUA_LIBDIR=$LUA_PREFIX/$LUA_LIB/$NAME/$VER_MAJOR.$VER_MINOR
+LUA_LIBDIR=$LUA_LIB/$NAME/${VER_MAJOR}.${VER_MINOR}
 
 cd $TMP
 tar -zxvf $CWD/$NAME-$VERSION.tar.gz
 SRC=$TMP/$NAME-$VERSION
 cd $SRC
 
-# See http://lua-users.org/wiki/LuaPowerPatches
-zcat $CWD/$NAME.advanced-readline.diff.gz | patch -p1 -b -z.orig
-zcat $CWD/$NAME.make-shared-libs.diff.gz | patch -p0 -b -z.orig
-
 PKG="$TMP/package-$NAME"
 mkdir -p $PKG
 
+# See http://lua-users.org/wiki/LuaPowerPatches
+patch -p0 -b -z.orig < $CWD/$NAME-$VERSION-advanced-readline.diff
+patch -p0 -b -z.orig < $CWD/$NAME-$VERSION-shared.diff
+
+# Additional source modifications
 sed -e "s_/usr/local_$PKG/${LUA_PREFIX}_" \
-    -e "s_/lib_/${LUA_LIB}_" \
-    -e "/^INSTALL_D/ d" \
-    -e "/^INSTALL_E/ d" \
-    -e "s_#INSTALL_INSTALL_" \
+    -e "s_/lib_/${LUA_LIBDIR}_" \
     -e "/EXEC/ s_-m_-s -m_" \
     -e "/^INSTALL_INC/ s:$:/${NAME}/${VER_MAJOR}.${VER_MINOR}:" \
     -i Makefile
+
 sed -e '/^CFLAGS/ s_$_ ${SLKCFLAGS}_' \
     -e "/LUA_T/ {N;s_-llua_-Wl,-rpath,/$LUA_LIBDIR -llua_}" \
     -i src/Makefile
+
 sed -e "s:\(.*LUA_ROOT\).*local.*:\1 \"/$LUA_PREFIX/\":" \
     -e "/LUA_CDIR/ s:lib:$LUA_LIB:" \
     -i.orig src/luaconf.h
 
 fix_source
 
-SLKCFLAGS=$SLKCFLAGS make linux
-LD_LIBRARY_PATH=src make test || exit 1
+SLKCFLAGS=$SLKCFLAGS make -j4 linux || exit 1
+LD_LIBRARY_PATH=src make test || exit 2
 make install
 
-install -m 755 -d $PKG/$LUA_LIBDIR
-mv $PKG/$LUA_PREFIX/$LUA_LIB/* $PKG/$LUA_LIBDIR
-( cd $PKG/$LUA_LIBDIR
-  ln -s liblua.so liblua.so.$VERSION
-  ln -s liblua.so liblua.so.$VER_MAJOR.$VER_MINOR )
-( cd $PKG/$LUA_LIBDIR
-  for file in *; do
-    ln -s /$LUA_LIBDIR/$file $PKG/$LUA_PREFIX/$LUA_LIB
-  done )
+# Link lua shared library
+( cd $PKG/$LUA_PREFIX/$LUA_LIBDIR
+  mv liblua.so liblua.so.$VER_MAJOR.$VER_MINOR.$VER_PATCH
+  ln -s liblua.so.$VER_MAJOR.$VER_MINOR.$VER_PATCH liblua.so.$VER_MAJOR.$VER_MINOR
+  ln -s liblua.so.$VER_MAJOR.$VER_MINOR.$VER_PATCH liblua.so.$VER_MAJOR
+  ln -s liblua.so.$VER_MAJOR.$VER_MINOR.$VER_PATCH liblua.so
+)
 
+# Make library links in /usr/lib
+install -d -m 755 $PKG/$LUA_PREFIX/$LUA_LIB
+( cd $PKG/$LUA_PREFIX/$LUA_LIB
+  ln -s $NAME/${VER_MAJOR}.${VER_MINOR}/liblua.so.$VER_MAJOR.$VER_MINOR.$VER_PATCH liblua.so.$VER_MAJOR.$VER_MINOR
+  ln -s $NAME/${VER_MAJOR}.${VER_MINOR}/liblua.so.$VER_MAJOR.$VER_MINOR.$VER_PATCH liblua.so.$VER_MAJOR
+  ln -s $NAME/${VER_MAJOR}.${VER_MINOR}/liblua.so.$VER_MAJOR.$VER_MINOR.$VER_PATCH liblua.so
+)
+
+# Link to lua executables
 ( cd $PKG/$LUA_PREFIX/bin
   mv lua lua$VER_MAJOR.$VER_MINOR
   mv luac luac$VER_MAJOR.$VER_MINOR
   ln -s lua$VER_MAJOR.$VER_MINOR lua
-  ln -s luac$VER_MAJOR.$VER_MINOR luac )
+  ln -s luac$VER_MAJOR.$VER_MINOR luac
+)
 
 PCDIR=$PKG/$LUA_PREFIX/$LUA_LIB/pkgconfig
 install -m 755 -d $PCDIR
@@ -103,9 +112,9 @@ install -m 644 $CWD/slack-required $PKG/install
 mkdir -p $PKG/usr/src/slackbuilds/$NAME-$VERSION
 install -m 644 $CWD/slack-desc       $PKG/usr/src/slackbuilds/$NAME-$VERSION
 install -m 644 $CWD/slack-required   $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/$NAME.advanced-readline.diff.gz \
+install -m 644 $CWD/$NAME-$VERSION-advanced-readline.diff \
                $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/$NAME.make-shared-libs.diff.gz  \
+install -m 644 $CWD/$NAME-$VERSION-shared.diff \
                $PKG/usr/src/slackbuilds/$NAME-$VERSION
 install -m 644 $CWD/$NAME.SlackBuild $PKG/usr/src/slackbuilds/$NAME-$VERSION
 
