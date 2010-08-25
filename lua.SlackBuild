@@ -3,6 +3,7 @@
 # SlackBuild for lua
 # Written by Georgi D. Sotirov <gdsotirov@dir.bg>
 # Based on script of Yair K <cesium2@gmail.com>
+# Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
 
 . ../slack-package.conf
@@ -13,47 +14,64 @@ VER_MINOR=1
 VER_PATCH=4
 VERSION=$VER_MAJOR.$VER_MINOR.$VER_PATCH
 ARCH=${ARCH:-i486}
-BUILD=1
-
-CWD=${CWD:-`pwd`}
-TMP=${TMP:-/tmp}
+BUILD=${BUILD:-1}
 
 LUA_PREFIX=usr
 LUA_LIB=lib
 LUA_LIBDIR=$LUA_LIB/$NAME/${VER_MAJOR}.${VER_MINOR}
 
-cd $TMP
-tar -zxvf $CWD/$NAME-$VERSION.tar.gz
-SRC=$TMP/$NAME-$VERSION
-cd $SRC
+TMP=${TMP:-/tmp}
+CWD=${CWD:-`pwd`}
+PKG_DIR=${PKG_DIR:-/tmp}
 
-PKG="$TMP/package-$NAME"
+if [ ! -e $TMP ]; then
+  mkdir -p $TMP # location to build the source
+fi
+
+SRC=$TMP/$NAME-$VERSION
+if [ -e $SRC -a -d $SRC ]; then
+  echo "Source directory '$SRC' already exists! Plaese, move it or remove it."
+  exit 1
+fi
+
+PKG=$TMP/package-$NAME
+if [ -e $PKG -a -d $PKG ]; then
+  echo "Package creation directory '$PKG' already exists! Please, move it or remove it."
+  exit 2
+fi
 mkdir -p $PKG
 
+# Extract and fix source
+cd $TMP
+tar -xvf $CWD/$NAME-$VERSION.tar.gz
+cd $SRC
+fix_source
+
+# Apply patches
 # See http://lua-users.org/wiki/LuaPowerPatches
 patch -p0 -b -z.orig < $CWD/$NAME-$VERSION-advanced-readline.diff
+# See http://www.lua.org/ftp/patch-lua-5.1.4-2
+patch -p0 -b -z.orig < $CWD/$NAME-$VERSION-official.diff
+# To build shared library, but still link the interpreter to the static
+# one.  See http://lua-users.org/lists/lua-l/2005-11/msg00260.html
 patch -p0 -b -z.orig < $CWD/$NAME-$VERSION-shared.diff
 
 # Additional source modifications
-sed -e "s_/usr/local_$PKG/${LUA_PREFIX}_" \
-    -e "s_/lib_/${LUA_LIBDIR}_" \
-    -e "/EXEC/ s_-m_-s -m_" \
-    -e "/^INSTALL_INC/ s:$:/${NAME}/${VER_MAJOR}.${VER_MINOR}:" \
-    -i Makefile
-
-sed -e '/^CFLAGS/ s_$_ ${SLKCFLAGS}_' \
-    -e "/LUA_T/ {N;s_-llua_-Wl,-rpath,/$LUA_LIBDIR -llua_}" \
-    -i src/Makefile
-
 sed -e "s:\(.*LUA_ROOT\).*local.*:\1 \"/$LUA_PREFIX/\":" \
     -e "/LUA_CDIR/ s:lib:$LUA_LIB:" \
     -i.orig src/luaconf.h
 
-fix_source
+make -e -j4 \
+  MYCFLAGS="-DLUA_USE_LINUX $SLKCFLAGS" \
+  linux || exit 1
 
-SLKCFLAGS=$SLKCFLAGS make -j4 linux || exit 1
 LD_LIBRARY_PATH=src make test || exit 2
-make install
+make -e \
+  INSTALL_BIN=$PKG/usr/bin \
+  INSTALL_INC=$PKG/usr/include/$NAME/${VER_MAJOR}.${VER_MINOR} \
+  INSTALL_LIB=$PKG/usr/lib/$NAME/${VER_MAJOR}.${VER_MINOR} \
+  INSTALL_MAN=$PKG/usr/man/man1 \
+  install || exit 3
 
 # Link lua shared library
 ( cd $PKG/$LUA_PREFIX/$LUA_LIBDIR
@@ -79,6 +97,13 @@ install -d -m 755 $PKG/$LUA_PREFIX/$LUA_LIB
   ln -s luac$VER_MAJOR.$VER_MINOR luac
 )
 
+# Provide symbolic link to the headers for convinience
+( cd $PKG/$LUA_PREFIX/include
+  ln -s $NAME/$VER_MAJOR.$VER_MINOR ${NAME}${VER_MAJOR}${VER_MINOR}
+  ln -s $NAME/$VER_MAJOR.$VER_MINOR ${NAME}${VER_MAJOR}.${VER_MINOR}
+  ln -s $NAME/$VER_MAJOR.$VER_MINOR ${NAME}-${VER_MAJOR}.${VER_MINOR} )
+
+# Provide pkgconfig information
 PCDIR=$PKG/$LUA_PREFIX/$LUA_LIB/pkgconfig
 install -m 755 -d $PCDIR
 
@@ -102,6 +127,7 @@ END
   ln -s $NAME-$VER_MAJOR.$VER_MINOR.pc $NAME.pc )
 
 # Prepare the package
+bin_perms $PKG
 ( cd $PKG; strip_bin; strip_lib )
 ( cd $SRC; create_docs $PKG $NAME-$VERSION )
 gzip_man $PKG
@@ -109,20 +135,19 @@ gzip_man $PKG
 mkdir -p $PKG/install
 install -m 644 $CWD/slack-desc     $PKG/install
 install -m 644 $CWD/slack-required $PKG/install
-mkdir -p $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/slack-desc       $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/slack-required   $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/$NAME-$VERSION-advanced-readline.diff \
-               $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/$NAME-$VERSION-shared.diff \
-               $PKG/usr/src/slackbuilds/$NAME-$VERSION
-install -m 644 $CWD/$NAME.SlackBuild $PKG/usr/src/slackbuilds/$NAME-$VERSION
+
+SBDIR=$PKG/usr/src/slackbuilds/$NAME-$VERSION
+mkdir -p $SBDIR
+install -m 644 $CWD/slack-desc            $SBDIR/slack-desc
+install -m 644 $CWD/slack-required        $SBDIR/slack-required
+install -m 644 $CWD/$NAME-$VERSION-*.diff $SBDIR
+install -m 644 $CWD/$NAME.SlackBuild      $SBDIR/$NAME.SlackBuild
 
 cd $PKG
 PKGNAME=$NAME-$VERSION-$ARCH-$BUILD$MYIN
-makepkg -l y -c n $PKG_DIR/$PKGNAME.tgz
+makepkg -l y -c n $PKG_DIR/$PKGNAME.txz
 cd $PKG_DIR
-md5sum $PKGNAME.tgz > $PKGNAME.tgz.md5
+md5sum $PKGNAME.txz > $PKGNAME.txz.md5
 cat $PKG/install/slack-desc > $PKG_DIR/$PKGNAME.txt
 
 if [ "$1" == "--cleanup" ]; then
