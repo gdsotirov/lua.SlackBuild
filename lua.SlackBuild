@@ -20,7 +20,7 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: lua.SlackBuild,v 1.5 2011/10/15 11:44:19 gsotirov Exp $
+# $Id: lua.SlackBuild,v 1.6 2011/10/15 12:17:35 gsotirov Exp $
 #
 
 . ../../slack-package.conf
@@ -34,7 +34,7 @@ ARCH=${ARCH:-i486}
 BUILD=${BUILD:-1}
 
 LUA_PREFIX=usr
-LUA_LIB=lib
+LUA_LIB=lib${LIBDIRSUFFIX}
 LUA_LIBDIR=$LUA_LIB/$NAME/${VER_MAJOR}.${VER_MINOR}
 
 TMP=${TMP:-/tmp}
@@ -84,10 +84,10 @@ make -e -j4 \
 
 LD_LIBRARY_PATH=src make test || exit 2
 make -e \
-  INSTALL_BIN=$PKG/usr/bin \
-  INSTALL_INC=$PKG/usr/include/$NAME/${VER_MAJOR}.${VER_MINOR} \
-  INSTALL_LIB=$PKG/usr/lib/$NAME/${VER_MAJOR}.${VER_MINOR} \
-  INSTALL_MAN=$PKG/usr/man/man1 \
+  INSTALL_BIN=$PKG/$LUA_PREFIX/bin \
+  INSTALL_INC=$PKG/$LUA_PREFIX/include/$NAME/${VER_MAJOR}.${VER_MINOR} \
+  INSTALL_LIB=$PKG/$LUA_PREFIX/$LUA_LIBDIR \
+  INSTALL_MAN=$PKG/$LUA_PREFIX/man/man1 \
   install || exit 5
 
 # Link lua shared library
