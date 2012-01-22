@@ -6,7 +6,7 @@
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
 
-. ../slack-package.conf
+. ../../slack-package.conf
 
 NAME=lua
 VER_MAJOR=5
@@ -17,7 +17,7 @@ ARCH=${ARCH:-i486}
 BUILD=${BUILD:-1}
 
 LUA_PREFIX=usr
-LUA_LIB=lib
+LUA_LIB=lib${LIBDIRSUFFIX}
 LUA_LIBDIR=$LUA_LIB/$NAME/${VER_MAJOR}.${VER_MINOR}
 
 TMP=${TMP:-/tmp}
@@ -69,7 +69,7 @@ LD_LIBRARY_PATH=src make test || exit 2
 make -e \
   INSTALL_BIN=$PKG/usr/bin \
   INSTALL_INC=$PKG/usr/include/$NAME/${VER_MAJOR}.${VER_MINOR} \
-  INSTALL_LIB=$PKG/usr/lib/$NAME/${VER_MAJOR}.${VER_MINOR} \
+  INSTALL_LIB=$PKG/usr/lib${LIBDIRSUFFIX}/$NAME/${VER_MAJOR}.${VER_MINOR} \
   INSTALL_MAN=$PKG/usr/man/man1 \
   install || exit 3
 
