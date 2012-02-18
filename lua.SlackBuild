@@ -20,15 +20,15 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: lua.SlackBuild,v 1.6 2011/10/15 12:17:35 gsotirov Exp $
+# $Id: lua.SlackBuild,v 1.7 2012/02/18 15:44:52 gsotirov Exp $
 #
 
 . ../../slack-package.conf
 
 NAME=lua
 VER_MAJOR=5
-VER_MINOR=1
-VER_PATCH=4
+VER_MINOR=2
+VER_PATCH=0
 VERSION=$VER_MAJOR.$VER_MINOR.$VER_PATCH
 ARCH=${ARCH:-i486}
 BUILD=${BUILD:-1}
@@ -66,12 +66,11 @@ fix_source
 
 # Apply patches
 # See http://lua-users.org/wiki/LuaPowerPatches
-patch -p0 -b -z.orig < $CWD/$NAME-$VERSION-advanced-readline.diff || exit 2
-# See http://www.lua.org/ftp/patch-lua-5.1.4-3
-( cd src; patch -p0 -b -z.orig < $CWD/$NAME-$VERSION-official.diff ) || exit 2
+patch -p1 -b -z.orig < $CWD/$NAME-$VERSION-advanced-readline.diff || exit 2
+patch -p1 -b -z.orig < $CWD/$NAME-$VERSION-module-paths.diff || exit 2
 # To build shared library, but still link the interpreter to the static
 # one.  See http://lua-users.org/lists/lua-l/2005-11/msg00260.html
-patch -p0 -b -z.orig < $CWD/$NAME-$VERSION-shared.diff || exit 2
+patch -p1 -b -z.orig < $CWD/$NAME-$VERSION-shared.diff || exit 2
 
 # Additional source modifications
 sed -e "s:\(.*LUA_ROOT\).*local.*:\1 \"/$LUA_PREFIX/\":" \
@@ -143,11 +142,18 @@ END
 ( cd $PCDIR
   ln -s $NAME-$VER_MAJOR.$VER_MINOR.pc $NAME.pc )
 
+
 # Prepare the package
 bin_perms $PKG
 ( cd $PKG; strip_bin; strip_lib )
-( cd $SRC; create_docs $PKG $NAME-$VERSION )
 gzip_man $PKG
+( cd $SRC; create_docs $PKG $NAME-$VERSION )
+# Complement documentation
+wget -O $PKG/usr/doc/$NAME-$VERSION/COPYING 'http://cgi.w3.org/cgi-bin/html2txt?url=http%3A%2F%2Fwww.lua.org%2Flicense.html'
+install -m 644 $SRC/doc/*.html             $PKG/usr/doc/$NAME-$VERSION/
+install -m 644 $SRC/doc/*.css              $PKG/usr/doc/$NAME-$VERSION/
+install -m 644 $SRC/doc/logo.gif           $PKG/usr/doc/$NAME-$VERSION/
+install -m 644 $SRC/doc/osi-certified*.png $PKG/usr/doc/$NAME-$VERSION/
 
 mkdir -p $PKG/install
 install -m 644 $CWD/slack-desc     $PKG/install
