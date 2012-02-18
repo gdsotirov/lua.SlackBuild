@@ -1,0 +1,26 @@
+# See http://lua-users.org/wiki/LuaPowerPatches
+# URL: http://lua-users.org/files/wiki_insecure/power_patches/5.2/lua-5.2.0-module_paths.patch
+diff -Nur lua-5.2.0/src/luaconf.h lua-5.2.0-module_paths//src/luaconf.h
+--- lua-5.2.0/src/luaconf.h	2011-12-06 16:58:36.000000000 +0000
++++ lua-5.2.0-module_paths//src/luaconf.h	2011-12-24 19:23:08.474108863 +0000
+@@ -101,13 +101,18 @@
+ 
+ #define LUA_VDIR	LUA_VERSION_MAJOR "." LUA_VERSION_MINOR "/"
+ #define LUA_ROOT	"/usr/local/"
++#define LUA_ROOT2	"/usr/"
+ #define LUA_LDIR	LUA_ROOT "share/lua/" LUA_VDIR
++#define LUA_LDIR2	LUA_ROOT2 "share/lua/" LUA_VDIR
+ #define LUA_CDIR	LUA_ROOT "lib/lua/" LUA_VDIR
++#define LUA_CDIR2	LUA_ROOT2 "lib/lua" LUA_VDIR
+ #define LUA_PATH_DEFAULT  \
+ 		LUA_LDIR"?.lua;"  LUA_LDIR"?/init.lua;" \
+-		LUA_CDIR"?.lua;"  LUA_CDIR"?/init.lua;" "./?.lua"
++		LUA_CDIR"?.lua;"  LUA_CDIR"?/init.lua;" \
++		LUA_LDIR2"?.lua;"  LUA_LDIR2"?/init.lua;" "./?.lua"
+ #define LUA_CPATH_DEFAULT \
+-		LUA_CDIR"?.so;" LUA_CDIR"loadall.so;" "./?.so"
++		LUA_CDIR"?.so;" LUA_CDIR"loadall.so;" "./?.so" \
++		"./?.so;" LUA_CDIR"?.so;" LUA_CDIR2"?.so;" LUA_CDIR"loadall.so"
+ #endif			/* } */
+ 
+ 
