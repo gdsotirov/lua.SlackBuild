@@ -1,19 +1,23 @@
 # See http://lua-users.org/wiki/LuaPowerPatches
-# URL: http://luajit.org/patches/lua-5.1.4-advanced_readline.patch
---- src/lua.c	2007-12-28 17:32:23.000000000 +0200
-+++ src/lua.c	2008-10-18 12:30:41.000000000 +0300
-@@ -149,6 +149,241 @@
-   return report(L, docall(L, 1, 1));
+# URL: http://luajit.org/patches/lua-5.2.0-advanced_readline.patch
+diff -ur lua-5.2.0/src/lua.c lua-5.2.0-patched/src/lua.c
+--- lua-5.2.0/src/lua.c	2011-12-12 08:34:03.000000000 -0800
++++ lua-5.2.0-patched/src/lua.c	2011-12-21 16:24:29.000000000 -0800
+@@ -236,6 +236,261 @@
+   return report(L, status);
  }
  
 +/* ------------------------------------------------------------------------ */
 +
 +#ifdef LUA_USE_READLINE
 +/*
-+** Advanced readline support for the GNU readline and history libraries
-+** or compatible replacements.
++** Lua 5.2.0 advanced readline support for the GNU readline and history
++** libraries or compatible replacements.
 +**
-+** Copyright (C) 2004-2006 Mike Pall. Same license as Lua. See lua.h.
++** Author: Mike Pall.
++** Maintainer: Sean Bolton (sean at smbolton dot com).
++**
++** Copyright (C) 2004-2006, 2011 Mike Pall. Same license as Lua. See lua.h.
 +**
 +** Advanced features:
 +** - Completion of keywords and global variable names.
@@ -41,8 +45,18 @@
 +** GNU    readline 4.3    (2002-07-16)
 +** GNU    readline 5.0    (2004-07-27)
 +** GNU    readline 5.1    (2005-12-07)
++** GNU    readline 5.2    (2006-10-11)
++** GNU    readline 6.0    (2009-02-20)
++** GNU    readline 6.2    (2011-02-13)
++** MacOSX libedit  2.11   (2008-07-12)
 +** NETBSD libedit  2.6.5  (2002-03-25)
 +** NETBSD libedit  2.6.9  (2004-05-01)
++**
++** Change Log:
++** 2004-2006  Mike Pall   - original patch
++** 2009/08/24 Sean Bolton - updated for GNU readline version 6
++** 2011/11/15 Sean Bolton - updated for Lua 5.2
++** 2011/12/14 Sean Bolton - fixed segfault when using Mac OS X libedit 2.11
 +*/
 +
 +#include <ctype.h>
@@ -55,7 +69,7 @@
 +/* Reserved keywords. */
 +static const char *const lua_rl_keywords[] = {
 +  "and", "break", "do", "else", "elseif", "end", "false",
-+  "for", "function", "if", "in", "local", "nil", "not", "or",
++  "for", "function", "goto", "if", "in", "local", "nil", "not", "or",
 +  "repeat", "return", "then", "true", "until", "while", NULL
 +};
 +
@@ -147,7 +161,7 @@
 +  ml.idx = ml.allocated = ml.matchlen = 0;
 +
 +  savetop = lua_gettop(L);
-+  lua_pushvalue(L, LUA_GLOBALSINDEX);
++  lua_pushglobaltable(L);
 +  for (n = (size_t)(end-start), i = dot = 0; i < n; i++)
 +    if (text[i] == '.' || text[i] == ':') {
 +      if (!lua_rl_getfield(L, text+dot, i-dot))
@@ -163,9 +177,11 @@
 +
 +  /* Add all valid matches from all tables/metatables. */
 +  loop = 0;  /* Avoid infinite metatable loops. */
++  lua_pushglobaltable(L);
++  lua_insert(L, -2);
 +  do {
 +    if (lua_istable(L, -1) &&
-+	(loop == 0 || !lua_rawequal(L, -1, LUA_GLOBALSINDEX)))
++	(loop == 0 || !lua_rawequal(L, -1, -2)))
 +      for (lua_pushnil(L); lua_next(L, -2); lua_pop(L, 1))
 +	if (lua_type(L, -2) == LUA_TSTRING) {
 +	  s = lua_tostring(L, -2);
@@ -184,24 +200,27 @@
 +	  }
 +	}
 +  } while (++loop < 20 && lua_rl_getmetaindex(L));
++  lua_pop(L, 1);
 +
-+  if (ml.idx > 1) {
-+    /* list[0] holds the common prefix of all matches (may be ""). */
-+    if (!(ml.list[0] = (char *)malloc(sizeof(char)*(ml.matchlen+1)))) {
++  if (ml.idx == 0) {
 +error:
-+      lua_settop(L, savetop);
-+      return NULL;
-+    }
++    lua_settop(L, savetop);
++    return NULL;
++  } else {
++    /* list[0] holds the common prefix of all matches (may be ""). */
++    /* If there is only one match, list[0] and list[1] will be the same. */
++    if (!(ml.list[0] = (char *)malloc(sizeof(char)*(ml.matchlen+1))))
++      goto error;
 +    memcpy(ml.list[0], ml.list[1], ml.matchlen);
 +    ml.list[0][ml.matchlen] = '\0';
 +    /* Add the NULL list terminator. */
 +    if (lua_rl_dmadd(&ml, NULL, 0, NULL, 0)) goto error;
-+  } else if (ml.idx == 1) {
-+    ml.list[0] = ml.list[1];  /* Only return common prefix. */
-+    ml.list[1] = NULL;
 +  }
 +
 +  lua_settop(L, savetop);
++#if RL_READLINE_VERSION >= 0x0600
++  rl_completion_suppress_append = 1;
++#endif
 +  return ml.list;
 +}
 +
@@ -218,7 +237,9 @@
 +  rl_completer_word_break_characters = 
 +    "\t\r\n !\"#$%&'()*+,-/;<=>?@[\\]^`{|}~";
 +  rl_completer_quote_characters = "\"'";
++#if RL_READLINE_VERSION < 0x0600
 +  rl_completion_append_character = '\0';
++#endif
 +  rl_attempted_completion_function = lua_rl_complete;
 +  rl_initialize();
 +
@@ -244,18 +265,18 @@
  
  static const char *get_prompt (lua_State *L, int firstline) {
    const char *p;
-@@ -217,6 +452,7 @@
+@@ -308,6 +563,7 @@
    int status;
    const char *oldprogname = progname;
    progname = NULL;
 +  lua_rl_init(L);
    while ((status = loadline(L)) != -1) {
-     if (status == 0) status = docall(L, 0, 0);
+     if (status == LUA_OK) status = docall(L, 0, LUA_MULTRET);
      report(L, status);
-@@ -232,6 +468,7 @@
+@@ -323,6 +579,7 @@
+   }
    lua_settop(L, 0);  /* clear stack */
-   fputs("\n", stdout);
-   fflush(stdout);
+   luai_writeline();
 +  lua_rl_exit(L);
    progname = oldprogname;
  }
