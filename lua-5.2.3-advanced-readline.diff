@@ -1,9 +1,9 @@
 # See http://lua-users.org/wiki/LuaPowerPatches
 # URL: http://luajit.org/patches/lua-5.2.0-advanced_readline.patch
-diff -ur lua-5.2.0/src/lua.c lua-5.2.0-patched/src/lua.c
---- lua-5.2.0/src/lua.c	2011-12-12 08:34:03.000000000 -0800
-+++ lua-5.2.0-patched/src/lua.c	2011-12-21 16:24:29.000000000 -0800
-@@ -236,6 +236,261 @@
+diff -urNad lua-5.2.3-orig/src/lua.c lua-5.2.3/src/lua.c
+--- lua-5.2.3-orig/src/lua.c	2013-04-12 21:48:47.000000000 +0300
++++ lua-5.2.3/src/lua.c	2014-08-03 16:11:43.000000000 +0300
+@@ -231,6 +231,261 @@
    return report(L, status);
  }
  
@@ -265,7 +265,7 @@ diff -ur lua-5.2.0/src/lua.c lua-5.2.0-patched/src/lua.c
  
  static const char *get_prompt (lua_State *L, int firstline) {
    const char *p;
-@@ -308,6 +563,7 @@
+@@ -304,6 +559,7 @@
    int status;
    const char *oldprogname = progname;
    progname = NULL;
@@ -273,7 +273,7 @@ diff -ur lua-5.2.0/src/lua.c lua-5.2.0-patched/src/lua.c
    while ((status = loadline(L)) != -1) {
      if (status == LUA_OK) status = docall(L, 0, LUA_MULTRET);
      report(L, status);
-@@ -323,6 +579,7 @@
+@@ -319,6 +575,7 @@
    }
    lua_settop(L, 0);  /* clear stack */
    luai_writeline();
