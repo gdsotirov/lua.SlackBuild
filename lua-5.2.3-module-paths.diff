@@ -1,8 +1,8 @@
 # See http://lua-users.org/wiki/LuaPowerPatches
 # URL: http://lua-users.org/files/wiki_insecure/power_patches/5.2/lua-5.2.0-module_paths.patch
-diff -Nur lua-5.2.0/src/luaconf.h lua-5.2.0-module_paths//src/luaconf.h
---- lua-5.2.0/src/luaconf.h	2011-12-06 16:58:36.000000000 +0000
-+++ lua-5.2.0-module_paths//src/luaconf.h	2011-12-24 19:23:08.474108863 +0000
+diff -urNad lua-5.2.3-orig/src/luaconf.h lua-5.2.3/src/luaconf.h
+--- lua-5.2.3-orig/src/luaconf.h	2013-04-12 21:48:47.000000000 +0300
++++ lua-5.2.3/src/luaconf.h	2014-08-03 16:18:34.000000000 +0300
 @@ -101,13 +101,18 @@
  
  #define LUA_VDIR	LUA_VERSION_MAJOR "." LUA_VERSION_MINOR "/"
