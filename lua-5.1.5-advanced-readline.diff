@@ -1,7 +1,9 @@
 # See http://lua-users.org/wiki/LuaPowerPatches
+# Advanced readline support
 # URL: http://luajit.org/patches/lua-5.1.4-advanced_readline.patch
---- src/lua.c	2007-12-28 17:32:23.000000000 +0200
-+++ src/lua.c	2008-10-18 12:30:41.000000000 +0300
+diff -urNad lua-5.1.5-orig/src/lua.c lua-5.1.5/src/lua.c
+--- lua-5.1.5-orig/src/lua.c	2007-12-28 17:32:23.000000000 +0200
++++ lua-5.1.5/src/lua.c	2015-05-02 11:08:50.000000000 +0300
 @@ -149,6 +149,241 @@
    return report(L, docall(L, 1, 1));
  }
