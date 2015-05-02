@@ -20,7 +20,7 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: lua.SlackBuild,v 1.6 2011/10/15 12:17:35 gsotirov Exp $
+# $Id: lua.SlackBuild,v 1.6.2.1 2015/05/02 09:22:32 gsotirov Exp $
 #
 
 . ../../slack-package.conf
@@ -28,7 +28,7 @@
 NAME=lua
 VER_MAJOR=5
 VER_MINOR=1
-VER_PATCH=4
+VER_PATCH=5
 VERSION=$VER_MAJOR.$VER_MINOR.$VER_PATCH
 ARCH=${ARCH:-i486}
 BUILD=${BUILD:-1}
@@ -60,18 +60,25 @@ mkdir -p $PKG
 
 # Extract and fix source
 cd $TMP
-tar -xvf $CWD/$NAME-$VERSION.tar.gz || exit 1
+tar -xvf $CWD/$NAME-$VERSION.tar.gz || exit 3
 cd $SRC
 fix_source
 
 # Apply patches
 # See http://lua-users.org/wiki/LuaPowerPatches
-patch -p0 -b -z.orig < $CWD/$NAME-$VERSION-advanced-readline.diff || exit 2
-# See http://www.lua.org/ftp/patch-lua-5.1.4-3
-( cd src; patch -p0 -b -z.orig < $CWD/$NAME-$VERSION-official.diff ) || exit 2
+# Advanced readline support
+patch -b -z .orig -p1 < $CWD/$NAME-$VERSION-advanced-readline.diff || exit 4
+# See http://lua-users.org/wiki/LuaPowerPatches
+# Add distribution-friendly default module paths
+patch -b -z .orig -p1 < $CWD/$NAME-$VERSION-module_paths.diff || exit 4
+# See http://www.lua.org/bugs.html#5.1.5-2
+patch -b -z .orig -p1 < $CWD/$NAME-$VERSION-official.diff || exit 4
 # To build shared library, but still link the interpreter to the static
 # one.  See http://lua-users.org/lists/lua-l/2005-11/msg00260.html
-patch -p0 -b -z.orig < $CWD/$NAME-$VERSION-shared.diff || exit 2
+patch -b -z .orig -p1 < $CWD/$NAME-$VERSION-shared.diff || exit 4
+# See http://lua-users.org/wiki/LuaPowerPatches
+# Better signal handling in the interpreter on POSIX systems
+patch -b -z .orig -p1 < $CWD/$NAME-$VERSION-sig_catch.diff || exit 4
 
 # Additional source modifications
 sed -e "s:\(.*LUA_ROOT\).*local.*:\1 \"/$LUA_PREFIX/\":" \
