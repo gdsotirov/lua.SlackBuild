@@ -1,7 +1,23 @@
-# Enable shared library building
-
---- Makefile	2008-08-12 03:40:48.000000000 +0300
-+++ Makefile	2010-08-25 19:34:32.000000000 +0300
+# Patch to enable shared library building
+# Copyright (C) 2010-2015 Georgi D. Sotirov <gdsotirov@dir.bg>
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+diff -urNad lua-5.1.5-orig/Makefile lua-5.1.5/Makefile
+--- lua-5.1.5-orig/Makefile	2012-02-10 11:50:23.000000000 +0200
++++ lua-5.1.5/Makefile	2015-05-02 12:15:28.000000000 +0300
 @@ -43,7 +43,7 @@
  # What to install.
  TO_BIN= lua luac
@@ -11,9 +27,9 @@
  TO_MAN= lua.1 luac.1
  
  # Lua version and release.
-diff -N -r -U 3 lua-5.1.4-orig/src/Makefile lua-5.1.4/src/Makefile
---- src/Makefile	2008-01-19 21:37:58.000000000 +0200
-+++ src/Makefile	2010-08-25 20:22:20.000000000 +0300
+diff -urNad lua-5.1.5-orig/src/Makefile lua-5.1.5/src/Makefile
+--- lua-5.1.5-orig/src/Makefile	2012-02-13 22:41:22.000000000 +0200
++++ lua-5.1.5/src/Makefile	2015-05-02 12:16:08.000000000 +0300
 @@ -23,11 +23,17 @@
  PLATS= aix ansi bsd freebsd generic linux macosx mingw posix solaris
  
@@ -54,7 +70,7 @@ diff -N -r -U 3 lua-5.1.4-orig/src/Makefile lua-5.1.4/src/Makefile
 +	$(CC) $(CFLAGS) -fPIC -o $@ -c $<
 +
  $(LUA_A): $(CORE_O) $(LIB_O)
- 	$(AR) $@ $?
+ 	$(AR) $@ $(CORE_O) $(LIB_O)	# DLL needs all object files
  	$(RANLIB) $@
  
 -$(LUA_T): $(LUA_O) $(LUA_A)
