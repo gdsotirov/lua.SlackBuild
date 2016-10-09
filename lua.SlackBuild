@@ -2,7 +2,7 @@
 #
 # Slackware build script for Lua
 # Based on script of Yair K <cesium2@gmail.com>
-# Copyright (C) 2006-2015 Georgi D. Sotirov <gdsotirov@dir.bg>
+# Copyright (C) 2006-2016 Georgi D. Sotirov <gdsotirov@dir.bg>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
 #
 # Visit SlackPack at http://sotirov-bg.net/slackpack/
 #
-# $Id: lua.SlackBuild,v 1.9 2015/05/02 10:32:08 gsotirov Exp $
+# $Id: lua.SlackBuild,v 1.10 2016/10/09 05:23:41 gsotirov Exp $
 #
 
 . ../../slack-package.conf
@@ -30,7 +30,7 @@ VER_MAJOR=5
 VER_MINOR=2
 VER_PATCH=4
 VERSION=$VER_MAJOR.$VER_MINOR.$VER_PATCH
-ARCH=${ARCH:-i486}
+ARCH=${ARCH:-i586}
 BUILD=${BUILD:-1}
 
 LUA_PREFIX=usr
