@@ -8,4 +8,4 @@ lua: extensible semantics. Lua is dynamically typed, interpreted from bytecodes,
 lua: and has automatic memory management with garbage collection, making it
 lua: ideal for configuration, scripting, and rapid prototyping.
 lua:
-lua: Packaged by Georgi D. Sotirov <gdsotirov@dir.bg>
+lua: Packaged by Georgi D. Sotirov <gdsotirov@gmail.com>
