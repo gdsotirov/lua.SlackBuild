@@ -1,6 +1,6 @@
-# See http://lua-users.org/wiki/LuaPowerPatches
+# See https://lua-users.org/wiki/LuaPowerPatches
 # Add distribution-friendly default module paths
-# URL: http://lua-users.org/files/wiki_insecure/power_patches/5.2/lua-5.2.0-module_paths.patch
+# URL: https://lua-users.org/files/wiki_insecure/power_patches/5.2/lua-5.2.0-module_paths.patch
 diff -urNad lua-5.2.4-orig/src/luaconf.h lua-5.2.4/src/luaconf.h
 --- lua-5.2.4-orig/src/luaconf.h	2013-11-21 19:26:16.000000000 +0200
 +++ lua-5.2.4/src/luaconf.h	2015-05-02 12:43:50.000000000 +0300

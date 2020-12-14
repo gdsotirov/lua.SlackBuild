@@ -1,6 +1,6 @@
-# See http://lua-users.org/wiki/LuaPowerPatches
+# See https://lua-users.org/wiki/LuaPowerPatches
 # Advanced readline support
-# URL: http://luajit.org/patches/lua-5.2.0-advanced_readline.patch
+# URL: https://luajit.org/patches/lua-5.2.0-advanced_readline.patch
 diff -urNad lua-5.2.4-orig/src/lua.c lua-5.2.4/src/lua.c
 --- lua-5.2.4-orig/src/lua.c	2013-04-12 21:48:47.000000000 +0300
 +++ lua-5.2.4/src/lua.c	2015-05-02 12:40:52.000000000 +0300

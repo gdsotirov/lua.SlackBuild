@@ -1,6 +1,6 @@
-# See http://lua-users.org/wiki/LuaPowerPatches
+# See https://lua-users.org/wiki/LuaPowerPatches
 # Better signal handling in the interpreter on POSIX systems
-# URL: http://lua-users.org/files/wiki_insecure/power_patches/5.2/lua-5.2.3-sig_catch.patch
+# URL: https://lua-users.org/files/wiki_insecure/power_patches/5.2/lua-5.2.3-sig_catch.patch
 diff -urNad lua-5.2.4-orig/src/lua.c lua-5.2.4/src/lua.c
 --- lua-5.2.4-orig/src/lua.c	2013-04-12 21:48:47.000000000 +0300
 +++ lua-5.2.4/src/lua.c	2015-05-02 13:22:16.000000000 +0300
