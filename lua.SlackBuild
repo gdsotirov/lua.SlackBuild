@@ -63,16 +63,16 @@ cd $SRC
 fix_source
 
 # Apply patches
-# See http://lua-users.org/wiki/LuaPowerPatches
+# See https://lua-users.org/wiki/LuaPowerPatches
 # Advanced readline support
 patch -b -z .orig -p1 < $CWD/$NAME-$VERSION-advanced-readline.diff || exit 4
-# See http://lua-users.org/wiki/LuaPowerPatches
+# See https://lua-users.org/wiki/LuaPowerPatches
 # Add distribution-friendly default module paths
 patch -b -z .orig -p1 < $CWD/$NAME-$VERSION-module_paths.diff || exit 4
 # To build shared library, but still link the interpreter to the static
-# one.  See http://lua-users.org/lists/lua-l/2005-11/msg00260.html
+# one.  See https://lua-users.org/lists/lua-l/2005-11/msg00260.html
 patch -b -z .orig -p1 < $CWD/$NAME-$VERSION-shared.diff || exit 4
-# See http://lua-users.org/wiki/LuaPowerPatches
+# See https://lua-users.org/wiki/LuaPowerPatches
 # Better signal handling in the interpreter on POSIX systems
 patch -b -z .orig -p1 < $CWD/$NAME-$VERSION-sig_catch.diff || exit 4
 
@@ -153,7 +153,7 @@ bin_perms $PKG
 gzip_man $PKG
 ( cd $SRC; create_docs $PKG $NAME-$VERSION )
 # Complement documentation
-wget -O $PKG/usr/doc/$NAME-$VERSION/COPYING 'http://cgi.w3.org/cgi-bin/html2txt?url=http%3A%2F%2Fwww.lua.org%2Flicense.html'
+wget -O $PKG/usr/doc/$NAME-$VERSION/COPYING 'https://cgi.w3.org/cgi-bin/html2txt?url=http%3A%2F%2Fwww.lua.org%2Flicense.html'
 install -m 644 $SRC/doc/*.html             $PKG/usr/doc/$NAME-$VERSION/
 install -m 644 $SRC/doc/*.css              $PKG/usr/doc/$NAME-$VERSION/
 install -m 644 $SRC/doc/logo.gif           $PKG/usr/doc/$NAME-$VERSION/
