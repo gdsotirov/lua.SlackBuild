@@ -25,7 +25,7 @@
 
 NAME=lua
 VER_MAJOR=5
-VER_MINOR=2
+VER_MINOR=4
 VER_PATCH=4
 VERSION=$VER_MAJOR.$VER_MINOR.$VER_PATCH
 ARCH=${ARCH:-i586}
@@ -64,17 +64,12 @@ fix_source
 
 # Apply patches
 # See https://lua-users.org/wiki/LuaPowerPatches
-# Advanced readline support
-patch --backup --strip=1 --suffix=.orig < $CWD/$NAME-$VERSION-advanced-readline.diff || exit 4
-# See https://lua-users.org/wiki/LuaPowerPatches
-# Add distribution-friendly default module paths
-patch --backup --strip=1 --suffix=.orig < $CWD/$NAME-$VERSION-module_paths.diff || exit 4
+patch --backup --strip=1 --suffix=.orig < $CWD/$NAME-$VERSION-advanced-readline.diff || exit 41
+patch --backup --strip=1 --suffix=.orig < $CWD/$NAME-$VERSION-plusequals.diff || exit 42
+patch --backup --strip=1 --suffix=.orig < $CWD/$NAME-$VERSION-shorthand-lambdas.diff || exit 43
 # To build shared library, but still link the interpreter to the static
 # one.  See https://lua-users.org/lists/lua-l/2005-11/msg00260.html
-patch --backup --strip=1 --suffix=.orig < $CWD/$NAME-$VERSION-shared.diff || exit 4
-# See https://lua-users.org/wiki/LuaPowerPatches
-# Better signal handling in the interpreter on POSIX systems
-patch --backup --strip=1 --suffix=.orig < $CWD/$NAME-$VERSION-sig_catch.diff || exit 4
+patch --backup --strip=1 --suffix=.orig < $CWD/$NAME-$VERSION-shared.diff || exit 44
 
 # Additional source modifications
 sed --expression="s:\(.*LUA_ROOT\).*local.*:\1 \"/$LUA_PREFIX/\":" \
@@ -83,7 +78,7 @@ sed --expression="s:\(.*LUA_ROOT\).*local.*:\1 \"/$LUA_PREFIX/\":" \
 
 make --environment-overrides --jobs 8 \
   MYCFLAGS="-DLUA_USE_LINUX $SLKCFLAGS" \
-  linux || exit 6
+  linux-readline || exit 6
 
 LD_LIBRARY_PATH=src make test || exit 7
 make --environment-overrides \
@@ -177,7 +172,7 @@ install --mode 644 --preserve-timestamps \
 install --mode 644 --preserve-timestamps \
         $CWD/slack-required        $SBDIR/slack-required
 install --mode 644 --preserve-timestamps \
-        $CWD/$NAME-$VERSION-*.diff $SBDIR
+        $CWD/$NAME-$VERSION-*.diff $SBDIR/
 install --mode 644 --preserve-timestamps \
         $CWD/$NAME.SlackBuild      $SBDIR/$NAME.SlackBuild
 
