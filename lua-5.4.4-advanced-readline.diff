@@ -1,10 +1,10 @@
 # See https://lua-users.org/wiki/LuaPowerPatches
 # Advanced readline support
-# URL: https://luajit.org/patches/lua-5.2.0-advanced_readline.patch
-diff -urNad lua-5.2.4-orig/src/lua.c lua-5.2.4/src/lua.c
---- lua-5.2.4-orig/src/lua.c	2013-04-12 21:48:47.000000000 +0300
-+++ lua-5.2.4/src/lua.c	2015-05-02 12:40:52.000000000 +0300
-@@ -231,6 +231,261 @@
+# URL: http://lua-users.org/files/wiki_insecure/power_patches/5.4/lua-5.4.3-advanced_readline.patch
+diff -urNZ lua-5.4.3/src/lua.c lua-5.4.3-new/src/lua.c
+--- lua-5.4.3/src/lua.c	2021-03-15 08:32:51.000000000 -0500
++++ lua-5.4.3-new/src/lua.c	2021-06-18 20:01:32.055785100 -0500
+@@ -220,6 +220,266 @@
    return report(L, status);
  }
  
@@ -18,7 +18,7 @@ diff -urNad lua-5.2.4-orig/src/lua.c lua-5.2.4/src/lua.c
 +** Author: Mike Pall.
 +** Maintainer: Sean Bolton (sean at smbolton dot com).
 +**
-+** Copyright (C) 2004-2006, 2011 Mike Pall. Same license as Lua. See lua.h.
++** Copyright (C) 2004-2006, 2014 Mike Pall. Same license as Lua. See lua.h.
 +**
 +** Advanced features:
 +** - Completion of keywords and global variable names.
@@ -58,8 +58,12 @@ diff -urNad lua-5.2.4-orig/src/lua.c lua-5.2.4/src/lua.c
 +** 2009/08/24 Sean Bolton - updated for GNU readline version 6
 +** 2011/11/15 Sean Bolton - updated for Lua 5.2
 +** 2011/12/14 Sean Bolton - fixed segfault when using Mac OS X libedit 2.11
++** 2014/08/07 Sean Bolton - updated for Lua 5.3.0-alpha
++** 2015/06/17 Sean Bolton - updated for Lua 5.3.1
 +*/
 +
++#include <readline/readline.h>
++#include <readline/history.h>
 +#include <ctype.h>
 +
 +static char *lua_rl_hist;
@@ -254,6 +258,7 @@ diff -urNad lua-5.2.4-orig/src/lua.c lua-5.2.4/src/lua.c
 +/* Finalize readline library. */
 +static void lua_rl_exit(lua_State *L)
 +{
++  (void)L; /* Avoid 'unused parameter' warning. */
 +  /* Optionally save history file. */
 +  if (lua_rl_hist) write_history(lua_rl_hist);
 +}
@@ -264,21 +269,32 @@ diff -urNad lua-5.2.4-orig/src/lua.c lua-5.2.4/src/lua.c
 +
 +/* ------------------------------------------------------------------------ */
  
- static const char *get_prompt (lua_State *L, int firstline) {
-   const char *p;
-@@ -304,6 +559,7 @@
+ /*
+ ** Push on the stack the contents of table 'arg' from 1 to #arg
+@@ -414,8 +674,6 @@
+ 
+ #if defined(LUA_USE_READLINE)	/* { */
+ 
+-#include <readline/readline.h>
+-#include <readline/history.h>
+ #define lua_initreadline(L)	((void)L, rl_readline_name="lua")
+ #define lua_readline(L,b,p)	((void)L, ((b)=readline(p)) != NULL)
+ #define lua_saveline(L,line)	((void)L, add_history(line))
+@@ -578,7 +836,7 @@
    int status;
    const char *oldprogname = progname;
-   progname = NULL;
+   progname = NULL;  /* no 'progname' on errors in interactive mode */
+-  lua_initreadline(L);
 +  lua_rl_init(L);
    while ((status = loadline(L)) != -1) {
-     if (status == LUA_OK) status = docall(L, 0, LUA_MULTRET);
-     report(L, status);
-@@ -319,6 +575,7 @@
+     if (status == LUA_OK)
+       status = docall(L, 0, LUA_MULTRET);
+@@ -587,6 +845,7 @@
    }
    lua_settop(L, 0);  /* clear stack */
-   luai_writeline();
+   lua_writeline();
 +  lua_rl_exit(L);
    progname = oldprogname;
  }
  
+
