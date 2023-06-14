@@ -1,5 +1,5 @@
 # Enable shared library build patch
-# Copyright (C) 2010-2022 Georgi D. Sotirov <gdsotirov@gmail.com>
+# Copyright (C) 2010-2023 Georgi D. Sotirov <gdsotirov@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -15,9 +15,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
-diff -urNad lua-5.4.4-orig/Makefile lua-5.4.4/Makefile
---- lua-5.4.4-orig/Makefile	2021-11-04 18:25:27.000000000 +0200
-+++ lua-5.4.4/Makefile	2022-03-19 17:03:28.192236263 +0200
+diff -urNad lua-5.4.6-orig/Makefile lua-5.4.6/Makefile
+--- lua-5.4.6-orig/Makefile	2023-05-02 23:06:08.000000000 +0300
++++ lua-5.4.6/Makefile	2023-06-14 19:32:56.112743734 +0300
 @@ -41,7 +41,7 @@
  # What to install.
  TO_BIN= lua luac
@@ -27,11 +27,11 @@ diff -urNad lua-5.4.4-orig/Makefile lua-5.4.4/Makefile
  TO_MAN= lua.1 luac.1
  
  # Lua version and release.
-diff -urNad lua-5.4.4-orig/src/Makefile lua-5.4.4/src/Makefile
---- lua-5.4.4-orig/src/Makefile	2021-07-15 17:01:52.000000000 +0300
-+++ lua-5.4.4/src/Makefile	2022-03-19 17:13:46.213169572 +0200
+diff -urNad lua-5.4.6-orig/src/Makefile lua-5.4.6/src/Makefile
+--- lua-5.4.6-orig/src/Makefile	2023-02-03 12:43:14.000000000 +0200
++++ lua-5.4.6/src/Makefile	2023-06-14 19:32:56.112743734 +0300
 @@ -33,18 +33,24 @@
- PLATS= guess aix bsd c89 freebsd generic linux linux-readline macosx mingw posix solaris
+ PLATS= guess aix bsd c89 freebsd generic ios linux linux-readline macosx mingw posix solaris
  
  LUA_A=	liblua.a
 +LUA_SO= liblua.so
@@ -88,7 +88,7 @@ diff -urNad lua-5.4.4-orig/src/Makefile lua-5.4.4/src/Makefile
  clean:
  	$(RM) $(ALL_T) $(ALL_O)
  
-@@ -120,10 +135,10 @@
+@@ -123,10 +138,10 @@
  Linux linux:	linux-noreadline
  
  linux-noreadline:
