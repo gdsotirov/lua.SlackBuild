@@ -181,7 +181,7 @@ cd $PKG
 PKGNAME=${NAME}-${VERSION}-${ARCH}-${BUILD}${MYIN}
 makepkg --chown n --linkadd y $PKG_DIR/${PKGNAME}.txz
 md5sum $PKG_DIR/${PKGNAME}.txz > $PKG_DIR/${PKGNAME}.txz.md5
-install --mode 644 $PKG/install/slack-desc $PKG_DIR/${PKGNAME}.txtt
+install --mode 644 $PKG/install/slack-desc $PKG_DIR/${PKGNAME}.txt
 
 # Clean up
 if [ "$1" == "--cleanup" ]; then
