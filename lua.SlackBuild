@@ -2,7 +2,7 @@
 #
 # Slackware build script for Lua
 # Based on script of Yair K <cesium2@gmail.com>
-# Copyright (C) 2006-2022 Georgi D. Sotirov <gdsotirov@gmail.com>
+# Copyright (C) 2006-2023 Georgi D. Sotirov <gdsotirov@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -26,7 +26,7 @@
 NAME=lua
 VER_MAJOR=5
 VER_MINOR=4
-VER_PATCH=4
+VER_PATCH=6
 VERSION=$VER_MAJOR.$VER_MINOR.$VER_PATCH
 ARCH=${ARCH:-i586}
 BUILD=${BUILD:-1}
